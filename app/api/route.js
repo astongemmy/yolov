@@ -3,7 +3,7 @@ import { Storage } from "@google-cloud/storage";
 import { format } from "util";
 
 const cloudStorage = new Storage({
-  keyFilename: `./public/mpdiag-73fc22fc433d.json`,
+  keyFilename: `./env/mpdiag-73fc22fc433d.json`,
   projectId: "mpdiag",
 });
 
