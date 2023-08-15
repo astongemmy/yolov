@@ -55,6 +55,7 @@ export const POST = async (request) => {
 			}
 		}));
 	} catch (error) {
+		console.log(error)
 		return serverError('Server error', error);
 	}
 
