@@ -49,14 +49,9 @@ export default function Home() {
   };
 
   const sendFileToApi = async (files) => {
-    const apiUrl = 'https://mp-api-app-zgymkx5l6a-uc.a.run.app/predict';
-    const body = files.map(({ name, url }, index) => {
-      const fileKey = `img_${index}`;
-      const newFile = { name, url };
-      newFile[fileKey] = url;
-      return newFile;
-    });
-
+    const body = files.map(({ name, url }) => ({ filename: name, url }));
+    const apiUrl = 'https://mp-api-zgymkx5l6a-uc.a.run.app/predict';
+    
     setIsProcessing(true);
     
     try {
