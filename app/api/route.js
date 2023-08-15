@@ -56,7 +56,7 @@ export const POST = async (request) => {
 		}));
 	} catch (error) {
 		console.log(error)
-		return serverError('Server error', error);
+		return serverError(`Server error, ${error}`);
 	}
 
 	return success('Files uploaded successfully', data);
