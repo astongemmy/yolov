@@ -49,13 +49,12 @@ export default function Home() {
   };
 
   const sendFileToApi = async (files) => {
-    const body = files.map(({ name, url }) => ({ filename: name, url }));
     const apiUrl = 'https://mp-api-zgymkx5l6a-uc.a.run.app/predict';
     
     setIsProcessing(true);
     
     try {
-      const response = await axios.post(apiUrl, body);
+      const response = await axios.post(apiUrl, files);
       // setResponseMessage(data.message);
       setIsProcessing(false);
       console.log(response);

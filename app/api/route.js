@@ -6,20 +6,17 @@ import { format } from 'util';
 const cloudSecretName = 'projects/404962698555/secrets/mpdiag-key/versions/1';
 const client = new SecretManagerServiceClient();
 
-export const uploadFile = (file, cloudStorage) => new Promise((resolve, reject) => {
-	
-	const bucket = cloudStorage.bucket('mpdiag_bucket_v2');
+export const uploadFile = (file, bucket) => new Promise((resolve, reject) => {
+  const { filename, buffer } = file;
 
-  const { originalname, buffer } = file;
-
-	const blob = bucket.file(originalname);
+	const blob = bucket.file(filename);
   const blobStream = blob.createWriteStream({
     resumable: false
   });
 
   blobStream.on('finish', () => {
     const url = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-    resolve({ name: originalname, url });
+    resolve({ filename, url });
   });
 
 	blobStream.on('error', (error) => reject(error));
@@ -38,19 +35,20 @@ export const POST = async (request) => {
 		const [version] = await client.accessSecretVersion({ name: cloudSecretName });
 		const credentials = JSON.parse(version.payload.data.toString());
 		const cloudStorage = new Storage(credentials);
+		const bucket = cloudStorage.bucket('mpdiag_bucket_v2');
 
 		await Promise.all(files.map(async (file) => {
 			const bytes = await file.arrayBuffer();
 			const buffer = Buffer.from(bytes);
-			const originalname = file.name;
+			const filename = file.name;
 
 			const fileData = {
-				originalname,
+				filename,
 				buffer
 			};
 
 			try {
-				const response = await uploadFile(fileData, cloudStorage);
+				const response = await uploadFile(fileData, bucket);
 				data.push(response);
 			} catch (error) {
 				return serverError('An error occurred while uploading file(s)');
