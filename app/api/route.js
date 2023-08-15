@@ -1,13 +1,13 @@
-import { notFound, serverError, success } from "./api-responses";
-import { Storage } from "@google-cloud/storage";
-import { format } from "util";
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { notFound, serverError, success } from './api-responses';
+import { Storage } from '@google-cloud/storage';
+import { format } from 'util';
 
-const cloudStorage = new Storage({
-  keyFilename: `./env/mpdiag-73fc22fc433d.json`,
-  projectId: "mpdiag",
-});
+const cloudSecretName = 'projects/404962698555/secrets/mpdiag-key/versions/1';
+const client = new SecretManagerServiceClient();
 
-export const uploadFile = (file) => new Promise((resolve, reject) => {
+export const uploadFile = (file, cloudStorage) => new Promise((resolve, reject) => {
+	
 	const bucket = cloudStorage.bucket('mpdiag_bucket_v2');
 
   const { originalname, buffer } = file;
@@ -34,7 +34,11 @@ export const POST = async (request) => {
 		const files = Array.from(formData.values());
 		
 		if (!files || !files.length) return notFound('No files to upload');
-		
+
+		const [version] = await client.accessSecretVersion({ name: cloudSecretName });
+		const credentials = JSON.parse(version.payload.data.toString());
+		const cloudStorage = new Storage(credentials);
+
 		await Promise.all(files.map(async (file) => {
 			const bytes = await file.arrayBuffer();
 			const buffer = Buffer.from(bytes);
@@ -46,7 +50,7 @@ export const POST = async (request) => {
 			};
 
 			try {
-				const response = await uploadFile(fileData);
+				const response = await uploadFile(fileData, cloudStorage);
 				data.push(response);
 			} catch (error) {
 				return serverError('An error occurred while uploading file(s)');
